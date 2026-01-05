@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rev Store - Paid Promote</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+        
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-text {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 2rem;
+            text-align: center;
+            padding: 0 1rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .loading-bar-container {
+            width: 300px;
+            height: 20px;
+            background-color: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        
+        .loading-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            border-radius: 10px;
+            transition: width 2s ease;
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+        
+        .container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .welcome-button {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            color: white;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 1.5rem 0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .welcome-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .continue-text {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        
+        /* Menu Selection */
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .menu-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid #334155;
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .menu-card:hover {
+            transform: translateY(-10px);
+            border-color: #3b82f6;
+        }
+        
+        .menu-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #3b82f6;
+        }
+        
+        .menu-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+            color: #f1f5f9;
+        }
+        
+        .menu-description {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Product List */
+        .product-list {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .product-list.active {
+            display: grid;
+        }
+        
+        .product-card {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #334155;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+            border-color: #3b82f6;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .product-price {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+        
+        .product-members {
+            font-size: 1rem;
+            color: #f1f5f9;
+            margin-bottom: 1rem;
+        }
+        
+        .product-label {
+            display: inline-block;
+            background-color: #334155;
+            color: #cbd5e1;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        
+        /* Payment Modal */
+        .payment-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        
+        .payment-modal.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        
+        .payment-content {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            width: 90%;
+            max-width: 500px;
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+        
+        .payment-modal.active .payment-content {
+            transform: translateY(0);
+        }
+        
+        .payment-title {
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            color: #f1f5f9;
+        }
+        
+        .payment-method {
+            background-color: #0f172a;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #334155;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        
+        .payment-method:hover {
+            border-color: #3b82f6;
+        }
+        
+        .payment-method.selected {
+            border-color: #3b82f6;
+            background-color: rgba(59, 130, 246, 0.1);
+        }
+        
+        .payment-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #f1f5f9;
+        }
+        
+        .payment-number {
+            color: #94a3b8;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .payment-note {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+            font-style: italic;
+        }
+        
+        .payment-instruction {
+            background-color: #1e293b;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            text-align: center;
+            color: #94a3b8;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .payment-button {
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .payment-button:hover {
+            transform: translateY(-3px);
+        }
+        
+        .back-button {
+            background-color: #334155;
+            color: #f1f5f9;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.3s ease;
+        }
+        
+        .back-button:hover {
+            background-color: #475569;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .loading-text {
+                font-size: 2rem;
+            }
+            
+            .menu-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .product-list {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+            
+            .container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-text">SELAMAT DATANGGGGG</div>
+        <div class="loading-bar-container">
+            <div class="loading-bar" id="loadingBar"></div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="container" id="mainContainer">
+        <div class="header">
+            <div class="logo">REV STORE</div>
+            <div class="subtitle">Layanan Paid Promote Terpercaya</div>
+            
+            <button class="welcome-button" id="listButton">
+                <i class="fas fa-list"></i> LIST PP
+            </button>
+            
+            <div class="continue-text">TEKAN UNTUK LANJUT</div>
+        </div>
+        
+        <!-- Menu Selection -->
+        <div class="menu-container" id="menuContainer">
+            <div class="menu-card" id="gbMenu">
+                <div class="menu-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="menu-title">LIST PP GB</div>
+                <div class="menu-description">
+                    Layanan paid promote untuk group chat dengan sistem member
+                </div>
+                <div class="product-label">Pilih untuk melihat daftar</div>
+            </div>
+            
+            <div class="menu-card" id="saluranMenu">
+                <div class="menu-icon">
+                    <i class="fas fa-broadcast-tower"></i>
+                </div>
+                <div class="menu-title">LIST PP SALURAN</div>
+                <div class="menu-description">
+                    Layanan paid promote untuk saluran/channel dengan sistem pengikut
+                </div>
+                <div class="product-label">Pilih untuk melihat daftar</div>
+            </div>
+        </div>
+        
+        <!-- Product List for GB -->
+        <div class="product-list" id="gbProductList">
+            <!-- Products will be added here by JavaScript -->
+        </div>
+        
+        <!-- Product List for Saluran -->
+        <div class="product-list" id="saluranProductList">
+            <!-- Products will be added here by JavaScript -->
+        </div>
+        
+        <!-- Back Button -->
+        <div style="text-align: center; margin-top: 3rem; display: none;" id="backButtonContainer">
+            <button class="back-button" id="backButton">
+                <i class="fas fa-arrow-left"></i> Kembali ke Menu Utama
+            </button>
+        </div>
+    </div>
+    
+    <!-- Payment Modal -->
+    <div class="payment-modal" id="paymentModal">
+        <div class="payment-content">
+            <div class="payment-title">Metode Pembayaran</div>
+            
+            <div class="payment-method" id="danaPayment">
+                <div class="payment-name">DANA</div>
+                <div class="payment-number">085828481568</div>
+                <div class="payment-note">A/N: Revv</div>
+            </div>
+            
+            <div class="payment-method" id="gopayPayment">
+                <div class="payment-name">GOPAY</div>
+                <div class="payment-number">081220568534</div>
+                <div class="payment-note">A/N: AH*** KA*****</div>
+            </div>
+            
+            <div class="payment-method" id="qrisPayment">
+                <div class="payment-name">QRIS</div>
+                <div class="payment-number">MINTA KE ADMIN</div>
+                <div class="payment-note">Tekan tombol di bawah untuk minta QRIS</div>
+            </div>
+            
+            <div class="payment-instruction" id="paymentInstruction">
+                Pilih metode pembayaran di atas, kemudian klik tombol di bawah
+            </div>
+            
+            <button class="payment-button" id="confirmPaymentButton">
+                <i class="fas fa-check-circle"></i> Konfirmasi Pembayaran
+            </button>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <button class="back-button" id="closePaymentButton">
+                    <i class="fas fa-times"></i> Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Data produk
+        const products = {
+            gb: [
+                { price: "5K", members: "10 MEMBER" },
+                { price: "10K", members: "20 MEMBER" },
+                { price: "15K", members: "30 MEMBER" },
+                { price: "20K", members: "35 MEMBER" },
+                { price: "25K", members: "45 MEMBER" },
+                { price: "30K", members: "55 MEMBER" },
+                { price: "40K", members: "70 MEMBER" },
+                { price: "50K", members: "100 MEMBER" },
+                { price: "60K", members: "115 MEMBER" },
+                { price: "70K", members: "125 MEMBER" },
+                { price: "80K", members: "135 MEMBER" },
+                { price: "100K", members: "200 MEMBER" },
+                { price: "200K", members: "FULL MEMBER" }
+            ],
+            saluran: [
+                { price: "5K", members: "15 PENGIKUT" },
+                { price: "10K", members: "25 PENGIKUT" },
+                { price: "15K", members: "35 PENGIKUT" },
+                { price: "20K", members: "45 PENGIKUT" },
+                { price: "25K", members: "55 PENGIKUT" },
+                { price: "30K", members: "70 PENGIKUT" },
+                { price: "40K", members: "100 PENGIKUT" },
+                { price: "50K", members: "200 PENGIKUT" }
+            ]
+        };
+        
+        // Elemen DOM
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loadingBar = document.getElementById('loadingBar');
+        const mainContainer = document.getElementById('mainContainer');
+        const listButton = document.getElementById('listButton');
+        const menuContainer = document.getElementById('menuContainer');
+        const gbMenu = document.getElementById('gbMenu');
+        const saluranMenu = document.getElementById('saluranMenu');
+        const gbProductList = document.getElementById('gbProductList');
+        const saluranProductList = document.getElementById('saluranProductList');
+        const backButtonContainer = document.getElementById('backButtonContainer');
+        const backButton = document.getElementById('backButton');
+        const paymentModal = document.getElementById('paymentModal');
+        const danaPayment = document.getElementById('danaPayment');
+        const gopayPayment = document.getElementById('gopayPayment');
+        const qrisPayment = document.getElementById('qrisPayment');
+        const paymentInstruction = document.getElementById('paymentInstruction');
+        const confirmPaymentButton = document.getElementById('confirmPaymentButton');
+        const closePaymentButton = document.getElementById('closePaymentButton');
+        
+        // Variabel state
+        let selectedMenu = null;
+        let selectedProduct = null;
+        let selectedPayment = null;
+        
+        // Simulasi loading screen
+        setTimeout(() => {
+            loadingBar.style.width = '100%';
+            
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+                
+                setTimeout(() => {
+                    mainContainer.classList.add('show');
+                }, 300);
+            }, 2000);
+        }, 500);
+        
+        // Fungsi untuk membuat elemen produk
+        function createProductCard(product, type) {
+            const card = document.createElement('div');
+            card.className = 'product-card';
+            card.innerHTML = `
+                <div class="product-price">${product.price}</div>
+                <div class="product-members">${product.members}</div>
+                <div class="product-label">Klik untuk pilih</div>
+            `;
+            
+            card.addEventListener('click', () => {
+                selectedProduct = {
+                    price: product.price,
+                    members: product.members,
+                    type: type
+                };
+                
+                // Tampilkan modal pembayaran
+                paymentInstruction.textContent = `Jika sudah transfer, kirim bukti TF ke Rev Store untuk produk: ${product.price} - ${product.members}`;
+                paymentModal.classList.add('active');
+                
+                // Reset pilihan pembayaran
+                resetPaymentSelection();
+            });
+            
+            return card;
+        }
+        
+        // Fungsi untuk menampilkan produk berdasarkan jenis
+        function showProducts(type) {
+            // Sembunyikan menu
+            menuContainer.style.display = 'none';
+            backButtonContainer.style.display = 'block';
+            
+            // Tampilkan produk yang sesuai
+            if (type === 'gb') {
+                gbProductList.classList.add('active');
+                saluranProductList.classList.remove('active');
+            } else {
+                saluranProductList.classList.add('active');
+                gbProductList.classList.remove('active');
+            }
+        }
+        
+        // Fungsi untuk kembali ke menu utama
+        function backToMenu() {
+            menuContainer.style.display = 'grid';
+            backButtonContainer.style.display = 'none';
+            gbProductList.classList.remove('active');
+            saluranProductList.classList.remove('active');
+        }
+        
+        // Fungsi untuk mereset pilihan pembayaran
+        function resetPaymentSelection() {
+            selectedPayment = null;
+            danaPayment.classList.remove('selected');
+            gopayPayment.classList.remove('selected');
+            qrisPayment.classList.remove('selected');
+            
+            confirmPaymentButton.innerHTML = '<i class="fas fa-check-circle"></i> Konfirmasi Pembayaran';
+            confirmPaymentButton.disabled = false;
+        }
+        
+        // Fungsi untuk mengarahkan ke WhatsApp
+        function redirectToWhatsApp(message) {
+            const phoneNumber = '6285828481568';
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappURL = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+            window.open(whatsappURL, '_blank');
+        }
+        
+        // Event Listeners
+        listButton.addEventListener('click', () => {
+            // Tampilkan efek loading bar saat pindah ke menu
+            const loadingEffect = document.createElement('div');
+            loadingEffect.className = 'loading-bar-container';
+            loadingEffect.style.width = '100%';
+            loadingEffect.style.marginTop = '20px';
+            loadingEffect.innerHTML = '<div class="loading-bar" style="width: 0%; transition: width 1s ease;"></div>';
+            
+            listButton.parentNode.insertBefore(loadingEffect, listButton.nextSibling);
+            
+            // Animasikan loading bar
+            setTimeout(() => {
+                loadingEffect.querySelector('.loading-bar').style.width = '100%';
+                
+                setTimeout(() => {
+                    loadingEffect.remove();
+                }, 1000);
+            }, 100);
+        });
+        
+        gbMenu.addEventListener('click', () => {
+            selectedMenu = 'gb';
+            showProducts('gb');
+        });
+        
+        saluranMenu.addEventListener('click', () => {
+            selectedMenu = 'saluran';
+            showProducts('saluran');
+        });
+        
+        backButton.addEventListener('click', backToMenu);
+        
+        // Pilihan pembayaran
+        danaPayment.addEventListener('click', () => {
+            resetPaymentSelection();
+            danaPayment.classList.add('selected');
+            selectedPayment = 'dana';
+        });
+        
+        gopayPayment.addEventListener('click', () => {
+            resetPaymentSelection();
+            gopayPayment.classList.add('selected');
+            selectedPayment = 'gopay';
+        });
+        
+        qrisPayment.addEventListener('click', () => {
+            resetPaymentSelection();
+            qrisPayment.classList.add('selected');
+            selectedPayment = 'qris';
+        });
+        
+        // Konfirmasi pembayaran
+        confirmPaymentButton.addEventListener('click', () => {
+            if (!selectedPayment) {
+                alert('Silakan pilih metode pembayaran terlebih dahulu!');
+                return;
+            }
+            
+            let message = '';
+            
+            if (selectedPayment === 'qris') {
+                message = `Halo saya ingin meminta QRIS untuk pembayaran produk: ${selectedProduct.price} - ${selectedProduct.members}`;
+            } else {
+                message = `Halo, saya sudah transfer untuk produk: ${selectedProduct.price} - ${selectedProduct.members}\nMetode: ${selectedPayment.toUpperCase()}\nBerikut bukti transfernya:`;
+            }
+            
+            // Update tombol konfirmasi
+            confirmPaymentButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengarahkan ke WhatsApp...';
+            confirmPaymentButton.disabled = true;
+            
+            // Redirect ke WhatsApp setelah delay singkat
+            setTimeout(() => {
+                redirectToWhatsApp(message);
+                paymentModal.classList.remove('active');
+                resetPaymentSelection();
+            }, 1500);
+        });
+        
+        // Tutup modal pembayaran
+        closePaymentButton.addEventListener('click', () => {
+            paymentModal.classList.remove('active');
+            resetPaymentSelection();
+        });
+        
+        // Tutup modal dengan klik di luar konten
+        paymentModal.addEventListener('click', (e) => {
+            if (e.target === paymentModal) {
+                paymentModal.classList.remove('active');
+                resetPaymentSelection();
+            }
+        });
+        
+        // Inisialisasi produk
+        function initializeProducts() {
+            // Kosongkan daftar produk
+            gbProductList.innerHTML = '';
+            saluranProductList.innerHTML = '';
+            
+            // Tambahkan produk GB
+            products.gb.forEach(product => {
+                gbProductList.appendChild(createProductCard(product, 'gb'));
+            });
+            
+            // Tambahkan produk saluran
+            products.saluran.forEach(product => {
+                saluranProductList.appendChild(createProductCard(product, 'saluran'));
+            });
+        }
+        
+        // Jalankan inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', initializeProducts);
+    </script>
+</body>
+</html>
